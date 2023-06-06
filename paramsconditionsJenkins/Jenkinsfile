@@ -1,0 +1,31 @@
+pipeline {
+    agent { label 'OPENJDK' }
+    parameters { choice(name: 'image_type', choices: ['base', 'infra', 'none'], description: 'this is for choosing image ') }
+    stages {
+        stage('testing'){
+            steps {
+                script {
+                    def REPO= "fortestingmyself.jfrog.io/myrepo"
+                    def first_image= "ubuntu"
+                    def second_image= "nginx"
+                    if(params["image_type"] == "base") {
+                        sh """docker image pull ${second_image}
+                            docker image tag ${second_image} ${REPO}/${second_image}:${params.image_type}-${BUILD_NUMBER}
+                            echo image tag done for base images"""
+                    }
+                    else if (params["image_type"] == "infra") {
+                        sh """docker image pull ${first_image}
+                            docker image tag ${first_image} ${REPO}/${first_image}:${params.image_type}-${BUILD_NUMBER}
+                            echo image tag done for infra image"""
+                    }
+                    else if (params["image_type"] == "none") {
+                        sh "echo image type is done"
+                    }
+                    else {
+                        sh "image tagging failed"
+                    }
+                }
+            }
+        }
+    }
+}
